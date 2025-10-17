@@ -24,6 +24,7 @@ Error handling for invalid IDs and insufficient stock
 
 
 
+
 🧩 Class Overview
 
 Class	           Description
@@ -39,6 +40,8 @@ AlertService	  Triggers alerts                     when stock is
 Main	        Demonstrates complete                     workflow
 
 
+
+
 🚀 Example Workflow
 
 1️⃣ Add product “Laptop” with reorder threshold of 5
@@ -47,6 +50,9 @@ Main	        Demonstrates complete                     workflow
 4️⃣ System triggers alert:
 
 ⚠️ Restock Alert: Low stock for Laptop – only 4 left!
+
+
+
 
 
 
