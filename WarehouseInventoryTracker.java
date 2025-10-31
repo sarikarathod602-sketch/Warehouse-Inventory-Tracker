@@ -63,78 +63,72 @@ class AlertService implements StockObserver {
 }
 
 // ===================== Warehouse Class =====================
-class Warehouse {
-    private Map<String, Product> products = new HashMap<>();
-    private List<StockObserver> observers = new ArrayList<>();
+import java.util.HashMap;
 
-    public void addObserver(StockObserver observer) {
-        observers.add(observer);
-}
+public class Warehouse {
+    private HashMap<String, Product> products;
+    private AlertService alertService;
+    private int threshold; // ✅ warehouse-level threshold
 
-    private void notifyLowStock(Product product) {
-        for (StockObserver obs : observers) {
-            obs.onLowStock(product);
-}
-}
+    public Warehouse(AlertService alertService, int threshold) {
+        products = new HashMap<>();
+        this.alertService = alertService;
+        this.threshold = threshold;
+    }
 
     public void addProduct(Product product) {
-        if (products.containsKey(product.getId())) {
-            System.out.println("⚠ Product ID already exists!");
-            return;
-}
         products.put(product.getId(), product);
-        System.out.println("✅ Product added successfully!");
-}
+        System.out.println("✅ Product added: " + product.getName());
+    }
 
-    public void deleteProduct(String id) {
-        if (products.remove(id) != null) {
-            System.out.println("🗑 Product deleted successfully!");
-} else {
+    public void receiveShipment(String id, int quantity) {
+        Product product = products.get(id);
+        if (product != null) {
+            product.setQuantity(product.getQuantity() + quantity);
+            System.out.println("📦 Shipment received for " + product.getName() +
+                               ". New Quantity: " + product.getQuantity());
+        } else {
             System.out.println("❌ Product not found!");
-}
-}
+        }
+    }
 
-    public void receiveShipment(String id, int qty) {
-        Product p = products.get(id);
-        if (p != null) {
-            p.increaseQuantity(qty);
-            System.out.println("📦 Shipment received for " + p.getName() +
-                    " (+ " + qty + " units, total = " + p.getQuantity() + ")");
-} else {
+    public void fulfillOrder(String id, int quantity) {
+        Product product = products.get(id);
+        if (product != null) {
+            if (product.getQuantity() >= quantity) {
+                product.setQuantity(product.getQuantity() - quantity);
+                System.out.println("🛒 Order fulfilled for " + product.getName() +
+                                   ". Remaining: " + product.getQuantity());
+
+                // ✅ Check warehouse-level threshold
+                if (product.getQuantity() < threshold) {
+                    alertService.triggerAlert(product);
+                }
+            } else {
+                System.out.println("⚠ Insufficient stock for " + product.getName());
+            }
+        } else {
             System.out.println("❌ Product not found!");
-}
-}
+        }
+    }
 
-    public void fulfillOrder(String id, int qty) {
-        Product p = products.get(id);
-        if (p != null) {
-            int before = p.getQuantity();
-            if (p.decreaseQuantity(qty)) {
-                System.out.println("🛒 Order fulfilled for " + p.getName() +
-                        " (- " + qty + " units, remaining = " + p.getQuantity() + ")");
-                if (p.getQuantity() < p.getReorderThreshold() && before >= p.getReorderThreshold()) {
-                    notifyLowStock(p);
-}
-}
-} else {
-            System.out.println("❌ Product not found!");
-}
-}
-
-    public void showAllProducts() {
+    public void displayProducts() {
         if (products.isEmpty()) {
-            System.out.println("📦 No products in inventory.");
-            return;
-}
-        System.out.println("\n📋 Current Inventory:");
-        for (Product p : products.values()) {
-            System.out.println(p);
-}
-}
+            System.out.println("📭 No products available!");
+        } else {
+            System.out.println("\n📋 Product List:");
+            for (Product p : products.values()) {
+                p.displayInfo();
+            }
+        }
+    }
+    public int getThreshold() {
+        return threshold;
+    }
 
-    public boolean hasProducts() {
-        return !products.isEmpty();
-}
+    public void setThreshold(int threshold) {
+        this.threshold = threshold;
+    }
 }
 
 // ===================== Main Class =====================
