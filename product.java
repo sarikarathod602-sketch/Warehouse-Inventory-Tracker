@@ -4,13 +4,11 @@ public class Product {
     private String productId;
     private String name;
     private int quantity;
-    private int reorderThreshold;
 
-    public Product(String productId, String name, int quantity, int reorderThreshold) {
+    public Product(String productId, String name, int quantity) {
         this.productId = productId;
         this.name = name;
         this.quantity = quantity;
-        this.reorderThreshold = reorderThreshold;
     }
 
     public String getProductId() {
@@ -25,9 +23,6 @@ public class Product {
         return quantity;
     }
 
-    public int getReorderThreshold() {
-        return reorderThreshold;
-    }
 
     public void increaseStock(int amount) {
         if (amount > 0) {
@@ -42,4 +37,5 @@ public class Product {
             System.out.println("❌ Invalid quantity to reduce for product: " + name);
         }
     }
+
 }
