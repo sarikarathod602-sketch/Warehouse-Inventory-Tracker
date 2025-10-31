@@ -1,57 +1,59 @@
-package com.jit.warehouse;
-
 import java.util.HashMap;
-import java.util.Map;
 
 public class Warehouse {
-    private Map<String, Product> inventory = new HashMap<>();
-    private StockObserver observer;
+    private HashMap<String, Product> products;
+    private AlertService alertService;
+    private int threshold; // ✅ warehouse-level threshold
 
-    public Warehouse(StockObserver observer) {
-        this.observer = observer;
+    public Warehouse(AlertService alertService, int threshold) {
+        products = new HashMap<>();
+        this.alertService = alertService;
+        this.threshold = threshold;
     }
 
     public void addProduct(Product product) {
-        if(!inventory.containsKey(product.getProductId())) {
-            inventory.put(product.getProductId(), product);
-            System.out.println("✅ Added new product: " + product.getName());
+        products.put(product.getId(), product);
+        System.out.println("✅ Product added: " + product.getName());
+    }
+
+    public void receiveShipment(String id, int quantity) {
+        Product product = products.get(id);
+        if (product != null) {
+            product.setQuantity(product.getQuantity() + quantity);
+            System.out.println("📦 Shipment received for " + product.getName() +
+                               ". New Quantity: " + product.getQuantity());
         } else {
-            System.out.println("⚠ Product already exists with ID: " + product.getProductId());
+            System.out.println("❌ Product not found!");
         }
     }
 
-    public void receiveShipment(String productId, int quantity) {
-        Product product = inventory.get(productId);
-        if(product != null) {
-            product.increaseStock(quantity);
-            System.out.println("📦 Shipment received: " + quantity + " units of " + product.getName());
-        } else {
-            System.out.println("❌ Invalid Product ID!");
-        }
-    }
+    public void fulfillOrder(String id, int quantity) {
+        Product product = products.get(id);
+        if (product != null) {
+            if (product.getQuantity() >= quantity) {
+                product.setQuantity(product.getQuantity() - quantity);
+                System.out.println("🛒 Order fulfilled for " + product.getName() +
+                                   ". Remaining: " + product.getQuantity());
 
-    public void fulfillOrder(String productId, int quantity) {
-        Product product = inventory.get(productId);
-        if(product != null) {
-            if(product.getQuantity() >= quantity) {
-                product.decreaseStock(quantity);
-                System.out.println("🛒 Fulfilled order of " + quantity + " units of " + product.getName());
-                if(product.getQuantity() < product.getReorderThreshold()) {
-                    observer.onLowStock(product);
+                // ✅ Check warehouse-level threshold
+                if (product.getQuantity() < threshold) {
+                    alertService.triggerAlert(product);
                 }
             } else {
-                System.out.println("❌ Insufficient stock for product: " + product.getName());
+                System.out.println("⚠ Insufficient stock for " + product.getName());
             }
         } else {
-            System.out.println("❌ Invalid Product ID!");
+            System.out.println("❌ Product not found!");
         }
     }
 
-    public void showInventory() {
-        System.out.println("\n📊 Current Inventory Status:");
-        for(Product p : inventory.values()) {
-            System.out.println("ID: " + p.getProductId() + ", Name: " + p.getName() + 
-                               ", Quantity: " + p.getQuantity());
-        }
-    }
-}
+    public void displayProducts() {
+        if (products.isEmpty()) {
+            System.out.println("📭 No products available!");
+        } else {
+            System.out.println("\n📋 Product List:");
+            for (Product p : products.values()) {
+                p.displayInfo();
+            }
+        }
+    }
